@@ -1,10 +1,10 @@
 """Client HTTP pour interroger l'API Open-Meteo avec validation Pydantic."""
 
 import logging
-from typing import Optional
+
 import requests
-from requests.exceptions import HTTPError, ConnectionError, Timeout, RequestException
 from pydantic import ValidationError
+from requests.exceptions import ConnectionError, HTTPError, RequestException, Timeout
 
 from schemas.weather import WeatherResponseModel
 
@@ -17,6 +17,8 @@ class OpenMeteoClient:
     BASE_URL = "https://api.open-meteo.com/v1/forecast"
 
     def __init__(self, timeout: int = 10):
+        if timeout <= 0:
+            raise ValueError("Le timeout doit être strictement positif.")
         self.timeout = timeout
         self.session = requests.Session()
 
@@ -42,10 +44,18 @@ class OpenMeteoClient:
             RequestException: En cas d'erreur de communication réseau ou HTTP.
             ValidationError: Si le format reçu ne correspond pas au schéma Pydantic attendu.
         """
+        latitude = float(latitude)
+        longitude = float(longitude)
+
+        if not -90.0 <= latitude <= 90.0:
+            raise ValueError("La latitude doit être comprise entre -90 et 90 degrés.")
+        if not -180.0 <= longitude <= 180.0:
+            raise ValueError("La longitude doit être comprise entre -180 et 180 degrés.")
+
         params = {
             "latitude": latitude,
             "longitude": longitude,
-            "current_weather": "true" if current_weather else "false",
+            "current_weather": str(bool(current_weather)).lower(),
             "timezone": timezone,
         }
 
@@ -55,11 +65,9 @@ class OpenMeteoClient:
                 params=params,
                 timeout=self.timeout,
             )
-            # Lève une HTTPError si le statut HTTP est 4xx ou 5xx
             response.raise_for_status()
 
             raw_data = response.json()
-            # Validation stricte des données avec Pydantic v2
             validated_weather = WeatherResponseModel.model_validate(raw_data)
             return validated_weather
 
