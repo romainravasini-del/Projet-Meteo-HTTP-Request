@@ -1,6 +1,6 @@
 # Schémas Pydantic pour les données météo Open-Meteo
 from pydantic import BaseModel, Field
-from typing import Dict , Any
+from typing import Optional, Dict, Any
 
 class CurrentWeather(BaseModel):
     time: str  = Field(..., example="2026-11-02T14:00", description="Horodatage du relevé météo")
@@ -17,5 +17,5 @@ class WeatherResponseModel(BaseModel):
     timezone: str = Field(..., example="Europe/Paris", description="Fuseau horaire appliqué")
     elevation: float = Field(..., example="42.0", description="Altitude du lieu en mètres")
     current_weather: CurrentWeather = Field(..., example="CurrentWeather(...)", description="Données météo instantanées")
-    hourly: Dict[str, Any] = Field(..., example="Hourly(...)", description="Données météo horaires")
-    daily: Dict[str, Any] = Field(..., example="Daily(...)", description="Données météo journalières")
+    hourly: Optional[Dict[str, Any]] = Field(default=None, example="Hourly(...)", description="Données météo horaires")
+    daily: Optional[Dict[str, Any]] = Field(default=None, example="Daily(...)", description="Données météo journalières")

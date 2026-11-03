@@ -67,10 +67,11 @@ Correspond au bloc `current_weather` imbriqué dans la réponse.
 
 ```text
 Projet-Meteo-HTTP-Request-1/
-├── models/             # Modèles métiers internes / persistence
-├── schemas/            # Schémas de validation Pydantic (WeatherResponseModel, etc.)
+├── schemas/            # Schémas de validation Pydantic (WeatherResponseModel, CurrentWeather)
+├── client.py           # Client HTTP (OpenMeteoClient) avec requêtes robustes et validation
+├── main.py             # Point d'entrée pour tester la récupération et l'affichage des données
 ├── .gitignore          # Fichiers ignorés par Git
-├── requirements.txt    # Dépendances du projet (requests, pydantic, etc.)
+├── requirements.txt    # Dépendances du projet (requests, pydantic)
 └── README.md           # Documentation & MCD
 ```
 
@@ -86,4 +87,9 @@ Projet-Meteo-HTTP-Request-1/
 2. **Installer les dépendances** :
    ```bash
    pip install -r requirements.txt
+   ```
+
+3. **Lancer le script de démonstration** :
+   ```bash
+   python main.py
    ```
