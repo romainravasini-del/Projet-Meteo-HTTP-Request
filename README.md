@@ -68,10 +68,11 @@ Correspond au bloc `current_weather` imbriqué dans la réponse.
 ```text
 Projet-Meteo-HTTP-Request-1/
 ├── schemas/            # Schémas de validation Pydantic (WeatherResponseModel, CurrentWeather)
+├── tests/              # Tests unitaires automatisés (pytest) pour schémas et client
 ├── client.py           # Client HTTP (OpenMeteoClient) avec requêtes robustes et validation
 ├── main.py             # Point d'entrée pour tester la récupération et l'affichage des données
 ├── .gitignore          # Fichiers ignorés par Git
-├── requirements.txt    # Dépendances du projet (requests, pydantic)
+├── requirements.txt    # Dépendances du projet (requests, pydantic, pytest...)
 └── README.md           # Documentation & MCD
 ```
 
@@ -89,7 +90,12 @@ Projet-Meteo-HTTP-Request-1/
    pip install -r requirements.txt
    ```
 
-3. **Lancer le script de démonstration** :
+3. **Lancer les tests unitaires** :
+   ```bash
+   pytest
+   ```
+
+4. **Lancer le script de démonstration** :
    ```bash
    python main.py
    ```
