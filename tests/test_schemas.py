@@ -188,3 +188,4 @@ def test_weather_response_model_invalid_longitude(lon):
     }
     with pytest.raises(ValidationError):
         WeatherResponseModel.model_validate(payload)
+
