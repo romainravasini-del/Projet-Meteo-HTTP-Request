@@ -1,12 +1,14 @@
-# 🌤️ Projet Météo - Client HTTP & Validation Pydantic
+# 🌤️ Projet Fil Rouge : L'Observatoire Météo
 
-Projet de récupération, validation et structuration de données météorologiques via l'API **Open-Meteo**, utilisant des requêtes HTTP robustes et la validation de schémas avec **Pydantic v2**.
+Application de collecte, validation et persistance de données météorologiques via l'API **Open-Meteo**, utilisant des requêtes HTTP robustes, la validation stricte de schémas avec **Pydantic v2** et le stockage relationnel avec **SQLite**.
 
 ---
 
-## 📐 Modèle Conceptuel de Données (MCD)
+## 📐 Modélisation des Données
 
-Le modèle ci-dessous illustre la structure des données récupérées depuis l'API Open-Meteo et leur organisation en classes Python :
+### 1. Modèle Conceptuel de Données (Pydantic)
+
+Le modèle ci-dessous illustre la structure des données reçues depuis l'API Open-Meteo et manipulées en mémoire :
 
 ```mermaid
 classDiagram
@@ -33,6 +35,28 @@ classDiagram
     }
 
     WeatherResponseModel "1" *-- "1" CurrentWeather : contient
+```
+
+### 2. Modèle Relationnel de la Base de Données (SQLite)
+
+Le schéma ci-dessous présente les tables relationnelles stockées dans `meteo.db` :
+
+```mermaid
+erDiagram
+    villes ||--o{ releves : "possède"
+    villes {
+        int id PK
+        string nom
+        float latitude
+        float longitude
+    }
+    releves {
+        int id PK
+        int ville_id FK
+        float temperature
+        float vitesse_vent
+        string date_heure
+    }
 ```
 
 ---
@@ -72,13 +96,15 @@ Correspond au bloc `current_weather` imbriqué dans la réponse.
 ```text
 Projet-Meteo-HTTP-Request-1/
 ├── schemas/            # Schémas de validation Pydantic (WeatherResponseModel, CurrentWeather)
-├── tests/              # Tests unitaires automatisés (pytest) pour schémas et client
+├── tests/              # Tests unitaires automatisés (pytest) pour schémas, client, base et pipeline
 ├── client.py           # Client HTTP (OpenMeteoClient) avec requêtes robustes et validation
-├── main.py             # Point d'entrée pour tester la récupération et l'affichage des données
+├── database.py         # Gestion de la base SQLite (tables villes et releves, requêtes, statistiques)
+├── pipeline.py         # Pipeline de collecte et persistance multi-villes (API -> Pydantic -> SQLite)
+├── main.py             # Point d'entrée de démonstration (collecte, validation, insertion, stats)
 ├── .env.example        # Exemple de configuration des variables d'environnement
-├── .gitignore          # Fichiers ignorés par Git
+├── .gitignore          # Fichiers ignorés par Git (dont *.db et .venv/)
 ├── requirements.txt    # Dépendances du projet (requests, pydantic, python-dotenv, pytest)
-└── README.md           # Documentation & MCD
+└── README.md           # Documentation, MCD & schéma relationnel
 ```
 
 ---
@@ -100,7 +126,7 @@ Projet-Meteo-HTTP-Request-1/
    cp .env.example .env
    ```
 
-4. **Lancer les tests unitaires** :
+4. **Lancer la suite de tests unitaires (41 tests)** :
    ```bash
    pytest
    ```
@@ -108,4 +134,9 @@ Projet-Meteo-HTTP-Request-1/
 5. **Lancer le script de démonstration** :
    ```bash
    python main.py
+   ```
+
+6. **Exécuter le pipeline complet de collecte multi-villes** :
+   ```bash
+   python pipeline.py
    ```

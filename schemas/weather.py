@@ -1,6 +1,5 @@
 # Schémas Pydantic pour les données météo Open-Meteo
 from typing import Any, Dict, Optional
-
 from pydantic import BaseModel, Field
 
 

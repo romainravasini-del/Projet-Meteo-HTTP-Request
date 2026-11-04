@@ -16,10 +16,14 @@ __pycache__/
 .env
 .env.local
 
+# Bases de données SQLite
+*.db
+*.sqlite
+*.sqlite3
+
 # IDE & OS
 .idea/
 .vscode/
 *.swp
 *.swo
 .DS_Store
-
