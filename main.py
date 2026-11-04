@@ -1,23 +1,33 @@
 """Script principal pour tester la récupération et la validation météo."""
 
-from client import OpenMeteoClient
-from requests.exceptions import RequestException
+import os
+
+from dotenv import load_dotenv
 from pydantic import ValidationError
+from requests.exceptions import RequestException
+
+from client import OpenMeteoClient
+
+# Chargement des variables d'environnement depuis le fichier .env si présent
+load_dotenv()
 
 
 def main():
-    # Coordonnées de Paris
-    paris_lat = 48.8566
-    paris_lon = 2.3522
+    # Coordonnées configurables via variables d'environnement (par défaut : Paris)
+    lat = float(os.getenv("DEFAULT_LATITUDE", 48.8566))
+    lon = float(os.getenv("DEFAULT_LONGITUDE", 2.3522))
+    timeout = int(os.getenv("OPEN_METEO_TIMEOUT", 10))
+    timezone = os.getenv("DEFAULT_TIMEZONE", "auto")
 
-    print("📡 Récupération des données météo pour Paris...")
+    print(f"📡 Récupération des données météo (Lat: {lat}°, Lon: {lon}°)...")
 
-    with OpenMeteoClient(timeout=10) as client:
+    with OpenMeteoClient(timeout=timeout) as client:
         try:
             weather_data = client.get_weather(
-                latitude=paris_lat,
-                longitude=paris_lon,
+                latitude=lat,
+                longitude=lon,
                 current_weather=True,
+                timezone=timezone,
             )
 
             print("\n Données récupérées et validées avec succès avec Pydantic !")

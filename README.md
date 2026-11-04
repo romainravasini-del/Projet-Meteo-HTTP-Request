@@ -19,6 +19,8 @@ classDiagram
         +string timezone
         +float elevation
         +CurrentWeather current_weather
+        +dict hourly
+        +dict daily
     }
 
     class CurrentWeather {
@@ -48,6 +50,8 @@ Correspond à la réponse globale renvoyée par le point d'accès `/v1/forecast`
 | `timezone` | `str` | `"Europe/Paris"` | Fuseau horaire appliqué |
 | `elevation` | `float` | `42.0` | Altitude du lieu en mètres |
 | `current_weather` | `CurrentWeather` | *(objet)* | Données météo instantanées |
+| `hourly` | `Optional[dict]` | `None` | Données météo horaires optionnelles |
+| `daily` | `Optional[dict]` | `None` | Données météo journalières optionnelles |
 
 #### 2. Sous-entité imbriquée : `CurrentWeather`
 Correspond au bloc `current_weather` imbriqué dans la réponse.
@@ -71,8 +75,9 @@ Projet-Meteo-HTTP-Request-1/
 ├── tests/              # Tests unitaires automatisés (pytest) pour schémas et client
 ├── client.py           # Client HTTP (OpenMeteoClient) avec requêtes robustes et validation
 ├── main.py             # Point d'entrée pour tester la récupération et l'affichage des données
+├── .env.example        # Exemple de configuration des variables d'environnement
 ├── .gitignore          # Fichiers ignorés par Git
-├── requirements.txt    # Dépendances du projet (requests, pydantic, pytest...)
+├── requirements.txt    # Dépendances du projet (requests, pydantic, python-dotenv, pytest)
 └── README.md           # Documentation & MCD
 ```
 
@@ -90,12 +95,17 @@ Projet-Meteo-HTTP-Request-1/
    pip install -r requirements.txt
    ```
 
-3. **Lancer les tests unitaires** :
+3. **(Optionnel) Configurer les variables d'environnement** :
+   ```bash
+   cp .env.example .env
+   ```
+
+4. **Lancer les tests unitaires** :
    ```bash
    pytest
    ```
 
-4. **Lancer le script de démonstration** :
+5. **Lancer le script de démonstration** :
    ```bash
    python main.py
    ```
