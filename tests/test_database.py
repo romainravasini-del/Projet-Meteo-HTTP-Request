@@ -142,3 +142,4 @@ def test_get_statistiques_globales(memory_db):
     assert stats["releve_plus_chaud"]["ville"] == "Strasbourg"
     assert stats["releve_plus_froid"]["ville"] == "Brest"
     assert stats["releve_plus_venteux"]["ville"] == "Brest"
+

@@ -134,3 +134,4 @@ if __name__ == "__main__":
         print(f"❄️  Plus froid           : {stats['releve_plus_froid']['ville']} ({stats['releve_plus_froid']['temperature']} °C)")
     if stats["releve_plus_venteux"]:
         print(f"💨 Plus venteux         : {stats['releve_plus_venteux']['ville']} ({stats['releve_plus_venteux']['vitesse_vent']} km/h)")
+

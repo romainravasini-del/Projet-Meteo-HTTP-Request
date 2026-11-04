@@ -194,3 +194,4 @@ def get_statistiques_globales(conn: sqlite3.Connection) -> Dict[str, Any]:
     stats["releve_plus_venteux"] = dict(cursor.fetchone()) if stats["total_releves"] > 0 else None
 
     return stats
+

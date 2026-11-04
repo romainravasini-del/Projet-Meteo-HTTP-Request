@@ -107,3 +107,4 @@ def test_executer_pipeline_handles_individual_errors(tmp_path, mock_weather_resp
 
     resultats = executer_pipeline(db_path=db_file, client=mock_client)
     assert len(resultats) == len(VILLES_PAR_DEFAUT) - 1
+
