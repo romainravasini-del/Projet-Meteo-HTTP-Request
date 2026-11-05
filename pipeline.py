@@ -124,12 +124,12 @@ if __name__ == "__main__":
     print("\n📊 Statistiques globales de la base de données :")
     print("-" * 70)
     stats = get_statistiques_globales(conn)
-    print(f"Total relevés stockés   : {stats['total_releves']}")
-    print(f"Température moyenne     : {stats['temperature_moyenne']} °C")
-    print(f"Température min / max   : {stats['temperature_min']} °C / {stats['temperature_max']} °C")
-    print(f"Vent moyen / max        : {stats['vent_moyen']} km/h / {stats['vent_max']} km/h")
+    print(f"Total relevés stockés       : {stats['total_releves']}")
+    print(f"Température moyenne         : {stats['temperature_moyenne']} °C")
+    print(f"Température min / max       : {stats['temperature_min']} °C / {stats['temperature_max']} °C")
+    print(f"Vent moyen / max            : {stats['vent_moyen']} km/h / {stats['vent_max']} km/h")
     if stats["releve_plus_chaud"]:
-        print(f"🔥 Plus chaud           : {stats['releve_plus_chaud']['ville']} ({stats['releve_plus_chaud']['temperature']} °C)")
+        print(f"🔥 Plus chaud                : {stats['releve_plus_chaud']['ville']} ({stats['releve_plus_chaud']['temperature']} °C)")
     if stats["releve_plus_froid"]:
         print(f"❄️  Plus froid           : {stats['releve_plus_froid']['ville']} ({stats['releve_plus_froid']['temperature']} °C)")
     if stats["releve_plus_venteux"]:

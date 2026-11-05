@@ -9,9 +9,9 @@ class ReleveModel(BaseModel):
     temperature: float
 
 class MeteoEtStats(BaseModel):
-  ville: str
-  releve: ReleveModel
-  stats: dict  # ou un modèle dédié
+    ville: str
+    releve: ReleveModel
+    stats: dict  
 
 
 app = FastAPI()
