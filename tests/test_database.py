@@ -1,11 +1,12 @@
-"""Tests unitaires pour le module de base de données SQLite (database.py)."""
-
-import sqlite3
+"""Tests unitaires pour le module de base de données ORM SQLModel (database.py)."""
 
 import pytest
+from sqlalchemy import inspect
+from sqlalchemy.exc import IntegrityError
 
 from database import (
-    get_connection,
+    Releve,
+    Ville,
     get_dernier_releve,
     get_releves_by_ville,
     get_statistiques_globales,
@@ -21,19 +22,41 @@ from database import (
 
 @pytest.fixture
 def memory_db():
-    """Fixture créant une base de données SQLite en mémoire pour chaque test."""
-    conn = init_db(":memory:")
-    yield conn
-    conn.close()
+    """Fixture créant une Session SQLModel connectée à une base SQLite en mémoire."""
+    session = init_db(":memory:")
+    yield session
+    session.close()
 
 
 def test_init_db_creates_tables(memory_db):
-    """Vérifie que les tables villes et releves sont créées."""
-    cursor = memory_db.cursor()
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-    tables = {row["name"] for row in cursor.fetchall()}
+    """Vérifie que les tables villes et releves sont créées par SQLModel."""
+    inspector = inspect(memory_db.get_bind())
+    tables = set(inspector.get_table_names())
     assert "villes" in tables
     assert "releves" in tables
+
+
+def test_sqlmodel_relationships(memory_db):
+    """Vérifie les relations ORM bidirectionnelles entre Ville et Releve."""
+    ville = Ville(nom="Bordeaux", latitude=44.8378, longitude=-0.5792)
+    memory_db.add(ville)
+    memory_db.commit()
+    memory_db.refresh(ville)
+
+    releve = Releve(
+        ville_id=ville.id,
+        temperature=17.5,
+        vitesse_vent=12.0,
+        date_heure="2026-11-06T10:00",
+    )
+    memory_db.add(releve)
+    memory_db.commit()
+    memory_db.refresh(releve)
+    memory_db.refresh(ville)
+
+    assert len(ville.releves) == 1
+    assert ville.releves[0].temperature == 17.5
+    assert releve.ville.nom == "Bordeaux"
 
 
 def test_insert_and_get_ville(memory_db):
@@ -77,7 +100,7 @@ def test_insert_releve_and_foreign_key(memory_db):
     assert releve_id > 0
 
     # Tenter d'insérer un relevé avec un ville_id inexistant doit lever une IntegrityError
-    with pytest.raises(sqlite3.IntegrityError):
+    with pytest.raises(IntegrityError):
         insert_releve(
             memory_db,
             ville_id=9999,
@@ -142,4 +165,3 @@ def test_get_statistiques_globales(memory_db):
     assert stats["releve_plus_chaud"]["ville"] == "Strasbourg"
     assert stats["releve_plus_froid"]["ville"] == "Brest"
     assert stats["releve_plus_venteux"]["ville"] == "Brest"
-

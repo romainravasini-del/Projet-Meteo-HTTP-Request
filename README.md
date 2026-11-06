@@ -1,14 +1,29 @@
 # 🌤️ Projet Fil Rouge : L'Observatoire Météo
 
-Application de collecte, validation et persistance de données météorologiques via l'API **Open-Meteo**, utilisant des requêtes HTTP robustes, la validation stricte de schémas avec **Pydantic v2** et le stockage relationnel avec **SQLite**.
+Application complète de collecte, validation, persistance ORM, exposition API et visualisation interactive de données météorologiques en temps réel.
+
+---
+
+## 🏗️ Architecture Globale (Jours 1 à 4)
+
+```mermaid
+flowchart LR
+    A["🌍 API Open-Meteo"] -->|1. Client HTTP Requests| B["🛡️ Validation Pydantic v2"]
+    B -->|2. Pipeline & ORM SQLModel| C[("🗄️ Base SQLite meteo.db")]
+    C -->|3. Session ORM & Endpoints| D["⚡ API REST FastAPI & Swagger"]
+    D -->|4. Requêtes HTTP JSON| E["📊 Dashboard Streamlit (Plotly & Folium)"]
+```
+
+* **Jour 1 — Réseau & Validation** : Client HTTP robuste (`requests.Session`, timeouts, gestion d'erreurs) et validation stricte des réponses entrantes avec **Pydantic v2**.
+* **Jour 2 — Persistance & ORM** : Modélisation relationnelle et persistance dans **SQLite** via l'ORM **SQLModel** (`Ville`, `Releve`, `Relationship`, `Session`, agrégations SQL).
+* **Jour 3 — Exposition API REST** : Serveur web **FastAPI** exposant les relevés et statistiques, documenté automatiquement avec **Swagger UI** (`/docs`).
+* **Jour 4 — Dashboard Interactif** : Interface frontend **Streamlit** connectée à FastAPI avec cartes de métriques (KPIs), courbes interactives **Plotly** et carte géographique **Folium**.
 
 ---
 
 ## 📐 Modélisation des Données
 
-### 1. Modèle Conceptuel de Données (Pydantic)
-
-Le modèle ci-dessous illustre la structure des données reçues depuis l'API Open-Meteo et manipulées en mémoire :
+### 1. Schémas de Validation Entrants (Pydantic v2)
 
 ```mermaid
 classDiagram
@@ -37,16 +52,14 @@ classDiagram
     WeatherResponseModel "1" *-- "1" CurrentWeather : contient
 ```
 
-### 2. Modèle Relationnel de la Base de Données (SQLite)
-
-Le schéma ci-dessous présente les tables relationnelles stockées dans `meteo.db` :
+### 2. Modèles Relationnels ORM (SQLModel / SQLite)
 
 ```mermaid
 erDiagram
-    villes ||--o{ releves : "possède"
+    villes ||--o{ releves : "possède (Relationship)"
     villes {
         int id PK
-        string nom
+        string nom UK
         float latitude
         float longitude
     }
@@ -61,82 +74,55 @@ erDiagram
 
 ---
 
-### Dictionnaire des Données
-
-#### 1. Entité racine : `WeatherResponseModel`
-Correspond à la réponse globale renvoyée par le point d'accès `/v1/forecast`.
-
-| Attribut | Type Python | Exemple | Description |
-|---|---|---|---|
-| `latitude` | `float` | `48.8566` | Latitude géographique du lieu |
-| `longitude` | `float` | `2.3522` | Longitude géographique du lieu |
-| `generationtime_ms` | `float` | `0.045` | Temps de génération côté serveur (ms) |
-| `timezone` | `str` | `"Europe/Paris"` | Fuseau horaire appliqué |
-| `elevation` | `float` | `42.0` | Altitude du lieu en mètres |
-| `current_weather` | `CurrentWeather` | *(objet)* | Données météo instantanées |
-| `hourly` | `Optional[dict]` | `None` | Données météo horaires optionnelles |
-| `daily` | `Optional[dict]` | `None` | Données météo journalières optionnelles |
-
-#### 2. Sous-entité imbriquée : `CurrentWeather`
-Correspond au bloc `current_weather` imbriqué dans la réponse.
-
-| Attribut | Type Python | Exemple | Description |
-|---|---|---|---|
-| `time` | `str` | `"2026-11-02T14:00"` | Horodatage du relevé météo (format ISO 8601) |
-| `temperature` | `float` | `13.5` | Température instantanée (°C) |
-| `windspeed` | `float` | `12.4` | Vitesse du vent (km/h) |
-| `winddirection` | `int` | `210` | Direction du vent en degrés (0° à 360°) |
-| `weathercode` | `int` | `3` | Code condition météo WMO (ex: 0=Ciel dégagé, 3=Couvert) |
-| `is_day` | `int` | `1` | Indicateur diurne/nocturne (1 = jour, 0 = nuit) |
-
----
-
 ## 🗂️ Structure du Projet
 
 ```text
 Projet-Meteo-HTTP-Request-1/
 ├── schemas/            # Schémas de validation Pydantic (WeatherResponseModel, CurrentWeather)
-├── tests/              # Tests unitaires automatisés (pytest) pour schémas, client, base et pipeline
+├── tests/              # Suite de 42 tests unitaires automatisés (pytest)
 ├── client.py           # Client HTTP (OpenMeteoClient) avec requêtes robustes et validation
-├── database.py         # Gestion de la base SQLite (tables villes et releves, requêtes, statistiques)
-├── pipeline.py         # Pipeline de collecte et persistance multi-villes (API -> Pydantic -> SQLite)
-├── main.py             # Point d'entrée de démonstration (collecte, validation, insertion, stats)
+├── database.py         # Modèles ORM SQLModel (Ville, Releve), engine SQLite, CRUD et statistiques
+├── pipeline.py         # Pipeline de collecte et persistance multi-villes (API -> Pydantic -> SQLModel)
+├── app.py              # Serveur API REST FastAPI avec documentation automatique Swagger
+├── dashboard.py        # Dashboard interactif Streamlit (KPIs, graphiques Plotly, carte Folium)
+├── main.py             # Script de démonstration unitaire
 ├── .env.example        # Exemple de configuration des variables d'environnement
-├── .gitignore          # Fichiers ignorés par Git (dont *.db et .venv/)
-├── requirements.txt    # Dépendances du projet (requests, pydantic, python-dotenv, pytest)
-└── README.md           # Documentation, MCD & schéma relationnel
+├── .gitignore          # Fichiers ignorés par Git (*.db, .venv/, __pycache__/)
+├── requirements.txt    # Dépendances du projet
+└── README.md           # Documentation & architecture
 ```
 
 ---
 
 ## 🚀 Installation & Démarrage
 
-1. **Activer l'environnement virtuel** :
-   ```bash
-   source .venv/bin/activate
-   ```
+### 1. Activer l'environnement virtuel et installer les dépendances
+```bash
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-2. **Installer les dépendances** :
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 2. Lancer la suite de tests unitaires (42 tests)
+```bash
+pytest -v
+```
 
-3. **(Optionnel) Configurer les variables d'environnement** :
-   ```bash
-   cp .env.example .env
-   ```
+### 3. Alimenter la base de données (Pipeline multi-villes)
+```bash
+python pipeline.py
+```
 
-4. **Lancer la suite de tests unitaires (41 tests)** :
-   ```bash
-   pytest
-   ```
+### 4. Démarrer le serveur API FastAPI (Terminal 1)
+```bash
+uvicorn app:app --reload
+```
+* **API Racine (Statistiques globales)** : `http://127.0.0.1:8000/`
+* **Météo d'une ville** : `http://127.0.0.1:8000/meteo/Paris`
+* **Historique d'une ville** : `http://127.0.0.1:8000/meteo/Paris/historique`
+* **Documentation interactive Swagger UI** : `http://127.0.0.1:8000/docs`
 
-5. **Lancer le script de démonstration** :
-   ```bash
-   python main.py
-   ```
-
-6. **Exécuter le pipeline complet de collecte multi-villes** :
-   ```bash
-   python pipeline.py
-   ```
+### 5. Démarrer le Dashboard Interactif Streamlit (Terminal 2)
+```bash
+streamlit run dashboard.py
+```
+* **Interface Web** : `http://localhost:8501`

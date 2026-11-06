@@ -59,9 +59,9 @@ def collecter_et_stocker_pour_ville(
     weather_data = client.get_weather(latitude=lat, longitude=lon, current_weather=True)
     current = weather_data.current_weather
 
-    # 3. Insertion propre dans SQLite
+    # 3. Insertion propre dans SQLite via SQLModel
     releve_id = insert_releve(
-        conn=conn,
+        session=conn,
         ville_id=ville_id,
         temperature=current.temperature,
         vitesse_vent=current.windspeed,

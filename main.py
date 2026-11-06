@@ -1,11 +1,9 @@
 """Script principal pour tester la récupération, la validation Pydantic et la persistance SQLite."""
 
 import os
-
 from dotenv import load_dotenv
 from pydantic import ValidationError
 from requests.exceptions import RequestException
-
 from client import OpenMeteoClient
 from database import (
     DEFAULT_DB_PATH,
@@ -63,9 +61,9 @@ def main():
             print(f" Code météo WMO         : {current.weathercode}")
             print("-" * 70)
 
-            # 3. Insertion SQLite
+            # 3. Insertion SQLite via SQLModel
             releve_id = insert_releve(
-                conn=conn,
+                session=conn,
                 ville_id=ville_id,
                 temperature=current.temperature,
                 vitesse_vent=current.windspeed,
