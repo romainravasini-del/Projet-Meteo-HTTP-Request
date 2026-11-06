@@ -5,13 +5,13 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy import event, func
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Field, Relationship, Session, SQLModel, create_engine, select
+from sqlmodel import Field, Relationship, Session, SQLModel, col, create_engine, select
 
 DEFAULT_DB_PATH = "meteo.db"
 
 
 @event.listens_for(Engine, "connect")
-def _set_sqlite_pragma(dbapi_connection, connection_record):
+def _set_sqlite_pragma(dbapi_connection: Any, connection_record: Any) -> None:
     """Active systématiquement les clés étrangères sur chaque connexion SQLite."""
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA foreign_keys = ON;")
@@ -91,13 +91,14 @@ def insert_ville(session: Session, nom: str, latitude: float, longitude: float) 
     statement = select(Ville).where(Ville.nom == nom_clean)
     ville_existante = session.exec(statement).first()
 
-    if ville_existante:
+    if ville_existante is not None:
         ville_existante.latitude = float(latitude)
         ville_existante.longitude = float(longitude)
         session.add(ville_existante)
         session.commit()
         session.refresh(ville_existante)
-        return int(ville_existante.id)
+        assert ville_existante.id is not None
+        return ville_existante.id
 
     nouvelle_ville = Ville(
         nom=nom_clean,
@@ -107,12 +108,13 @@ def insert_ville(session: Session, nom: str, latitude: float, longitude: float) 
     session.add(nouvelle_ville)
     session.commit()
     session.refresh(nouvelle_ville)
-    return int(nouvelle_ville.id)
+    assert nouvelle_ville.id is not None
+    return nouvelle_ville.id
 
 
 def get_villes(session: Session) -> List[Dict[str, Any]]:
     """Retourne la liste de toutes les villes enregistrées triées par nom."""
-    statement = select(Ville).order_by(Ville.nom.asc())
+    statement = select(Ville).order_by(col(Ville.nom).asc())
     villes = session.exec(statement).all()
     return [v.model_dump() for v in villes]
 
@@ -120,14 +122,14 @@ def get_villes(session: Session) -> List[Dict[str, Any]]:
 def get_ville_by_id(session: Session, ville_id: int) -> Optional[Dict[str, Any]]:
     """Récupère une ville par sa clé primaire via session.get()."""
     ville = session.get(Ville, ville_id)
-    return ville.model_dump() if ville else None
+    return ville.model_dump() if ville is not None else None
 
 
 def get_ville_by_nom(session: Session, nom: str) -> Optional[Dict[str, Any]]:
     """Récupère une ville par son nom (insensible à la casse)."""
-    statement = select(Ville).where(func.lower(Ville.nom) == nom.strip().lower())
+    statement = select(Ville).where(func.lower(col(Ville.nom)) == nom.strip().lower())
     ville = session.exec(statement).first()
-    return ville.model_dump() if ville else None
+    return ville.model_dump() if ville is not None else None
 
 
 def insert_releve(
@@ -148,7 +150,8 @@ def insert_releve(
         session.add(nouveau_releve)
         session.commit()
         session.refresh(nouveau_releve)
-        return int(nouveau_releve.id)
+        assert nouveau_releve.id is not None
+        return nouveau_releve.id
     except IntegrityError:
         session.rollback()
         raise
@@ -163,7 +166,7 @@ def get_releves_by_ville(
     statement = (
         select(Releve)
         .where(Releve.ville_id == ville_id)
-        .order_by(Releve.date_heure.desc(), Releve.id.desc())
+        .order_by(col(Releve.date_heure).desc(), col(Releve.id).desc())
         .limit(limit)
     )
     releves = session.exec(statement).all()
@@ -177,102 +180,77 @@ def get_dernier_releve(session: Session, ville_id: int) -> Optional[Dict[str, An
 
 
 def get_statistiques_ville(session: Session, ville_id: int) -> Optional[Dict[str, Any]]:
-    """Calcule des statistiques agrégées pour une ville avec les fonctions d'agrégation ORM."""
-    statement = select(
-        func.count(Releve.id),
-        func.round(func.avg(Releve.temperature), 2),
-        func.min(Releve.temperature),
-        func.max(Releve.temperature),
-        func.round(func.avg(Releve.vitesse_vent), 2),
-        func.max(Releve.vitesse_vent),
-    ).where(Releve.ville_id == ville_id)
-
-    row = session.exec(statement).first()
-    if not row or row[0] == 0:
+    """Calcule des statistiques agrégées pour une ville via l'ORM."""
+    releves = session.exec(select(Releve).where(Releve.ville_id == ville_id)).all()
+    if not releves:
         return None
 
+    temperatures = [r.temperature for r in releves]
+    vents = [r.vitesse_vent for r in releves]
+    total = len(releves)
+
     return {
-        "total_releves": row[0],
-        "temperature_moyenne": float(row[1]) if row[1] is not None else None,
-        "temperature_min": float(row[2]) if row[2] is not None else None,
-        "temperature_max": float(row[3]) if row[3] is not None else None,
-        "vent_moyen": float(row[4]) if row[4] is not None else None,
-        "vent_max": float(row[5]) if row[5] is not None else None,
+        "total_releves": total,
+        "temperature_moyenne": round(sum(temperatures) / total, 2),
+        "temperature_min": min(temperatures),
+        "temperature_max": max(temperatures),
+        "vent_moyen": round(sum(vents) / total, 2),
+        "vent_max": max(vents),
     }
 
 
 def get_statistiques_globales(session: Session) -> Dict[str, Any]:
     """Retourne des statistiques globales sur l'ensemble de la base via l'ORM."""
-    total_villes = session.exec(select(func.count(Ville.id))).one()
+    villes = session.exec(select(Ville)).all()
+    releves = session.exec(select(Releve)).all()
 
-    agg_stmt = select(
-        func.count(Releve.id),
-        func.round(func.avg(Releve.temperature), 2),
-        func.min(Releve.temperature),
-        func.max(Releve.temperature),
-        func.round(func.avg(Releve.vitesse_vent), 2),
-        func.max(Releve.vitesse_vent),
-    )
-    row = session.exec(agg_stmt).one()
-    total_releves = row[0]
+    total_villes = len(villes)
+    total_releves = len(releves)
 
     stats: Dict[str, Any] = {
         "total_villes": total_villes,
         "total_releves": total_releves,
-        "temperature_moyenne": float(row[1]) if row[1] is not None else None,
-        "temperature_min": float(row[2]) if row[2] is not None else None,
-        "temperature_max": float(row[3]) if row[3] is not None else None,
-        "vent_moyen": float(row[4]) if row[4] is not None else None,
-        "vent_max": float(row[5]) if row[5] is not None else None,
+        "temperature_moyenne": None,
+        "temperature_min": None,
+        "temperature_max": None,
+        "vent_moyen": None,
+        "vent_max": None,
         "releve_plus_chaud": None,
         "releve_plus_froid": None,
         "releve_plus_venteux": None,
     }
 
     if total_releves > 0:
-        # Relevé le plus chaud (jointure ORM Releve <-> Ville)
-        chaud_stmt = (
-            select(Ville.nom, Releve.temperature, Releve.date_heure)
-            .join(Ville, Releve.ville_id == Ville.id)
-            .order_by(Releve.temperature.desc())
-            .limit(1)
-        )
-        chaud = session.exec(chaud_stmt).first()
-        if chaud:
-            stats["releve_plus_chaud"] = {
-                "ville": chaud[0],
-                "temperature": chaud[1],
-                "date_heure": chaud[2],
-            }
+        temperatures = [r.temperature for r in releves]
+        vents = [r.vitesse_vent for r in releves]
 
-        # Relevé le plus froid
-        froid_stmt = (
-            select(Ville.nom, Releve.temperature, Releve.date_heure)
-            .join(Ville, Releve.ville_id == Ville.id)
-            .order_by(Releve.temperature.asc())
-            .limit(1)
-        )
-        froid = session.exec(froid_stmt).first()
-        if froid:
-            stats["releve_plus_froid"] = {
-                "ville": froid[0],
-                "temperature": froid[1],
-                "date_heure": froid[2],
-            }
+        stats["temperature_moyenne"] = round(sum(temperatures) / total_releves, 2)
+        stats["temperature_min"] = min(temperatures)
+        stats["temperature_max"] = max(temperatures)
+        stats["vent_moyen"] = round(sum(vents) / total_releves, 2)
+        stats["vent_max"] = max(vents)
 
-        # Relevé le plus venteux
-        vent_stmt = (
-            select(Ville.nom, Releve.vitesse_vent, Releve.date_heure)
-            .join(Ville, Releve.ville_id == Ville.id)
-            .order_by(Releve.vitesse_vent.desc())
-            .limit(1)
-        )
-        vent = session.exec(vent_stmt).first()
-        if vent:
-            stats["releve_plus_venteux"] = {
-                "ville": vent[0],
-                "vitesse_vent": vent[1],
-                "date_heure": vent[2],
-            }
+        villes_par_id = {v.id: v.nom for v in villes}
+
+        plus_chaud = max(releves, key=lambda r: r.temperature)
+        stats["releve_plus_chaud"] = {
+            "ville": villes_par_id.get(plus_chaud.ville_id, ""),
+            "temperature": plus_chaud.temperature,
+            "date_heure": plus_chaud.date_heure,
+        }
+
+        plus_froid = min(releves, key=lambda r: r.temperature)
+        stats["releve_plus_froid"] = {
+            "ville": villes_par_id.get(plus_froid.ville_id, ""),
+            "temperature": plus_froid.temperature,
+            "date_heure": plus_froid.date_heure,
+        }
+
+        plus_venteux = max(releves, key=lambda r: r.vitesse_vent)
+        stats["releve_plus_venteux"] = {
+            "ville": villes_par_id.get(plus_venteux.ville_id, ""),
+            "vitesse_vent": plus_venteux.vitesse_vent,
+            "date_heure": plus_venteux.date_heure,
+        }
 
     return stats
