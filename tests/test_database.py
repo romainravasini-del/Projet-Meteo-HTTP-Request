@@ -3,10 +3,8 @@
 import pytest
 from sqlalchemy import inspect
 from sqlalchemy.exc import IntegrityError
-
+from models.ville import Ville, Releve
 from core.database import (
-    Releve,
-    Ville,
     get_dernier_releve,
     get_releves_by_ville,
     get_statistiques_globales,

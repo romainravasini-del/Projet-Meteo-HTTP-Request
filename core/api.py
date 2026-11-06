@@ -1,8 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-
+from models.ville import Releve
 from core.database import (
-    Releve,
     Session,
     engine,
     get_dernier_releve,
