@@ -78,21 +78,33 @@ erDiagram
 
 ```text
 Projet-Meteo-HTTP-Request-1/
-├── observatoire/           # 🧠 Backend (package Python)
-│   ├── schemas/            #    Schémas de validation Pydantic (WeatherResponseModel, CurrentWeather)
-│   ├── client.py           #    Client HTTP (OpenMeteoClient) avec requêtes robustes et validation
-│   ├── database.py         #    Modèles ORM SQLModel (Ville, Releve), engine SQLite, CRUD et statistiques
-│   ├── pipeline.py         #    Pipeline de collecte multi-villes (API -> Pydantic -> SQLModel)
-│   └── api.py              #    Serveur API REST FastAPI (documentation Swagger)
-├── dashboard/
-│   └── app.py              # 🎨 Frontend : Dashboard Streamlit (KPIs, Plotly, carte Folium)
-├── data/                   # 🗄️ Base SQLite meteo.db (ignorée par Git)
+├── api/                    # 🌐 Couche Présentation API (FastAPI)
+│   ├── deps.py             #    Dépendance d'injection de session (Depends(get_db))
+│   └── v1/
+│       ├── router.py       #    Agrégateur des routes v1
+│       ├── schemas/        #    Schémas Pydantic / DTO de l'API (MeteoEtStats)
+│       └── routes/         #    Endpoints REST (villes.py avec APIRouter)
+├── core/                   # ⚙️ Infrastructure & Configuration
+│   ├── config.py           #    Chargement du .env et constantes de configuration
+│   ├── database.py         #    Moteur SQLAlchemy, connexion SQLite & PRAGMA
+│   ├── client.py           #    Client HTTP Open-Meteo avec validation Pydantic
+│   ├── schemas/            #    Schémas de validation Open-Meteo (WeatherResponseModel)
+│   └── api.py              #    Point d'entrée FastAPI (création de l'application)
+├── models/                 # 🏛️ Couche Domaine : Modèles ORM SQLModel (Ville, Releve)
+│   └── ville.py
+├── repositories/           # 🗄️ Couche Données : Requêtes et persistance (Repository Pattern)
+│   └── ville_repository.py
+├── services/               # 🧠 Couche Métier : Orchestration & pipeline d'ingestion
+│   └── ville_service.py
+├── dashboard/              # 🎨 Frontend : Interface interactive Streamlit
+│   └── app.py
+├── data/                   # 💾 Données locales (meteo.db, ignorée par Git)
 ├── tests/                  # ✅ Suite de 42 tests unitaires automatisés (pytest)
-├── main.py                 # Script de démonstration unitaire
-├── .env.example        # Exemple de configuration des variables d'environnement
-├── .gitignore          # Fichiers ignorés par Git (*.db, .venv/, __pycache__/)
-├── requirements.txt    # Dépendances du projet
-└── README.md           # Documentation & architecture
+├── main.py                 # Script de démonstration de bout en bout
+├── .env.example            # Gabarit des variables d'environnement
+├── .gitignore              # Fichiers ignorés par Git (*.db, .venv/, __pycache__/)
+├── requirements.txt        # Dépendances du projet
+└── README.md               # Documentation & architecture
 ```
 
 ---
@@ -110,14 +122,15 @@ pip install -r requirements.txt
 pytest -v
 ```
 
-### 3. Alimenter la base de données (Pipeline multi-villes)
+### 3. Alimenter la base de données (Collecte météo)
 ```bash
-python -m observatoire.pipeline
+python main.py
 ```
+*(ou lancer le service directement : `python -m services.ville_service`)*
 
 ### 4. Démarrer le serveur API FastAPI (Terminal 1)
 ```bash
-uvicorn observatoire.api:app --reload
+uvicorn core.api:app --reload
 ```
 * **API Racine (Statistiques globales)** : `http://127.0.0.1:8000/`
 * **Météo d'une ville** : `http://127.0.0.1:8000/meteo/Paris`
