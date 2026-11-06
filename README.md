@@ -83,10 +83,9 @@ Projet-Meteo-HTTP-Request-1/
 │   ├── client.py           #    Client HTTP (OpenMeteoClient) avec requêtes robustes et validation
 │   ├── database.py         #    Modèles ORM SQLModel (Ville, Releve), engine SQLite, CRUD et statistiques
 │   ├── pipeline.py         #    Pipeline de collecte multi-villes (API -> Pydantic -> SQLModel)
-│   └── api.py              #    Serveur API REST FastAPI (Swagger + /metrics Prometheus)
+│   └── api.py              #    Serveur API REST FastAPI (documentation Swagger)
 ├── dashboard/
 │   └── app.py              # 🎨 Frontend : Dashboard Streamlit (KPIs, Plotly, carte Folium)
-├── monitoring/             # 📈 Configuration Prometheus & Grafana
 ├── data/                   # 🗄️ Base SQLite meteo.db (ignorée par Git)
 ├── tests/                  # ✅ Suite de 42 tests unitaires automatisés (pytest)
 ├── main.py                 # Script de démonstration unitaire
@@ -124,7 +123,6 @@ uvicorn observatoire.api:app --reload
 * **Météo d'une ville** : `http://127.0.0.1:8000/meteo/Paris`
 * **Historique d'une ville** : `http://127.0.0.1:8000/meteo/Paris/historique`
 * **Documentation interactive Swagger UI** : `http://127.0.0.1:8000/docs`
-* **Métriques Prometheus** : `http://127.0.0.1:8000/metrics`
 
 ### 5. Démarrer le Dashboard Interactif Streamlit (Terminal 2)
 ```bash
