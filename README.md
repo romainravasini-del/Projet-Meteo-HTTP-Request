@@ -78,14 +78,18 @@ erDiagram
 
 ```text
 Projet-Meteo-HTTP-Request-1/
-├── schemas/            # Schémas de validation Pydantic (WeatherResponseModel, CurrentWeather)
-├── tests/              # Suite de 42 tests unitaires automatisés (pytest)
-├── client.py           # Client HTTP (OpenMeteoClient) avec requêtes robustes et validation
-├── database.py         # Modèles ORM SQLModel (Ville, Releve), engine SQLite, CRUD et statistiques
-├── pipeline.py         # Pipeline de collecte et persistance multi-villes (API -> Pydantic -> SQLModel)
-├── app.py              # Serveur API REST FastAPI avec documentation automatique Swagger
-├── dashboard.py        # Dashboard interactif Streamlit (KPIs, graphiques Plotly, carte Folium)
-├── main.py             # Script de démonstration unitaire
+├── observatoire/           # 🧠 Backend (package Python)
+│   ├── schemas/            #    Schémas de validation Pydantic (WeatherResponseModel, CurrentWeather)
+│   ├── client.py           #    Client HTTP (OpenMeteoClient) avec requêtes robustes et validation
+│   ├── database.py         #    Modèles ORM SQLModel (Ville, Releve), engine SQLite, CRUD et statistiques
+│   ├── pipeline.py         #    Pipeline de collecte multi-villes (API -> Pydantic -> SQLModel)
+│   └── api.py              #    Serveur API REST FastAPI (Swagger + /metrics Prometheus)
+├── dashboard/
+│   └── app.py              # 🎨 Frontend : Dashboard Streamlit (KPIs, Plotly, carte Folium)
+├── monitoring/             # 📈 Configuration Prometheus & Grafana
+├── data/                   # 🗄️ Base SQLite meteo.db (ignorée par Git)
+├── tests/                  # ✅ Suite de 42 tests unitaires automatisés (pytest)
+├── main.py                 # Script de démonstration unitaire
 ├── .env.example        # Exemple de configuration des variables d'environnement
 ├── .gitignore          # Fichiers ignorés par Git (*.db, .venv/, __pycache__/)
 ├── requirements.txt    # Dépendances du projet
@@ -109,20 +113,21 @@ pytest -v
 
 ### 3. Alimenter la base de données (Pipeline multi-villes)
 ```bash
-python pipeline.py
+python -m observatoire.pipeline
 ```
 
 ### 4. Démarrer le serveur API FastAPI (Terminal 1)
 ```bash
-uvicorn app:app --reload
+uvicorn observatoire.api:app --reload
 ```
 * **API Racine (Statistiques globales)** : `http://127.0.0.1:8000/`
 * **Météo d'une ville** : `http://127.0.0.1:8000/meteo/Paris`
 * **Historique d'une ville** : `http://127.0.0.1:8000/meteo/Paris/historique`
 * **Documentation interactive Swagger UI** : `http://127.0.0.1:8000/docs`
+* **Métriques Prometheus** : `http://127.0.0.1:8000/metrics`
 
 ### 5. Démarrer le Dashboard Interactif Streamlit (Terminal 2)
 ```bash
-streamlit run dashboard.py
+streamlit run dashboard/app.py
 ```
 * **Interface Web** : `http://localhost:8501`

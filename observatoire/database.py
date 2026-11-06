@@ -1,5 +1,6 @@
 """Module de gestion de la base de données avec l'ORM SQLModel."""
 
+import os
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import event, func
@@ -7,7 +8,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Field, Relationship, Session, SQLModel, col, create_engine, select
 
-DEFAULT_DB_PATH = "meteo.db"
+DEFAULT_DB_PATH = os.getenv("SQLITE_DB_PATH", "data/meteo.db")
 
 
 @event.listens_for(Engine, "connect")
@@ -55,7 +56,14 @@ class Releve(SQLModel, table=True):
 
 def get_engine(db_path: str = DEFAULT_DB_PATH) -> Engine:
     """Crée un moteur SQLAlchemy/SQLModel pour le chemin SQLite indiqué."""
-    url = "sqlite:///:memory:" if db_path == ":memory:" else f"sqlite:///{db_path}"
+    if db_path == ":memory:":
+        url = "sqlite:///:memory:"
+    else:
+        # Crée le dossier parent (ex: data/) s'il n'existe pas encore
+        dossier = os.path.dirname(db_path)
+        if dossier:
+            os.makedirs(dossier, exist_ok=True)
+        url = f"sqlite:///{db_path}"
     return create_engine(url, connect_args={"check_same_thread": False})
 
 

@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import inspect
 from sqlalchemy.exc import IntegrityError
 
-from database import (
+from observatoire.database import (
     Releve,
     Ville,
     get_dernier_releve,

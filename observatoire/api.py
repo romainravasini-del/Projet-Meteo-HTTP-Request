@@ -1,7 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from prometheus_fastapi_instrumentator import Instrumentator
 
-from database import (
+from observatoire.database import (
     Releve,
     Session,
     engine,
@@ -23,6 +24,7 @@ app = FastAPI(
     description="API REST de consultation météorologique propulsée par FastAPI et SQLModel",
     version="1.0.0",
 )
+Instrumentator().instrument(app).expose(app)
 
 
 @app.get("/")

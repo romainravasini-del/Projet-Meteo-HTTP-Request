@@ -4,19 +4,19 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from database import (
+from observatoire.database import (
     get_dernier_releve,
     get_villes,
     init_db,
     insert_ville,
 )
-from pipeline import (
+from observatoire.pipeline import (
     VILLES_PAR_DEFAUT,
     collecter_et_stocker_pour_ville,
     executer_pipeline,
     initialiser_villes_par_defaut,
 )
-from schemas.weather import CurrentWeather, WeatherResponseModel
+from observatoire.schemas.weather import CurrentWeather, WeatherResponseModel
 
 
 @pytest.fixture

@@ -7,8 +7,8 @@ import requests
 from pydantic import ValidationError
 from requests.exceptions import ConnectionError, HTTPError, RequestException, Timeout
 
-from client import OpenMeteoClient
-from schemas.weather import WeatherResponseModel
+from observatoire.client import OpenMeteoClient
+from observatoire.schemas.weather import WeatherResponseModel
 
 
 @pytest.fixture

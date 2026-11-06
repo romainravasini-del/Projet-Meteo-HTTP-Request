@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from schemas.weather import CurrentWeather, WeatherResponseModel
+from observatoire.schemas.weather import CurrentWeather, WeatherResponseModel
 
 
 def test_current_weather_valid():

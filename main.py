@@ -4,15 +4,15 @@ import os
 from dotenv import load_dotenv
 from pydantic import ValidationError
 from requests.exceptions import RequestException
-from client import OpenMeteoClient
-from database import (
+from observatoire.client import OpenMeteoClient
+from observatoire.database import (
     DEFAULT_DB_PATH,
     get_statistiques_ville,
     init_db,
     insert_releve,
     insert_ville,
 )
-from pipeline import initialiser_villes_par_defaut
+from observatoire.pipeline import initialiser_villes_par_defaut
 
 # Chargement de la configuration
 load_dotenv()

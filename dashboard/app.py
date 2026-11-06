@@ -1,3 +1,5 @@
+import os
+
 import streamlit as st
 import requests
 import folium
@@ -9,7 +11,8 @@ import plotly.express as px
 st.set_page_config("Observatoire Météo", layout="wide")
 st.title("🌤️ Observatoire Météo - Dashboard")
 
-API_URL = "http://127.0.0.1:8000"
+# URL de l'API : configurable par variable d'environnement (utile pour Docker)
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 
 def get_status():
     try:

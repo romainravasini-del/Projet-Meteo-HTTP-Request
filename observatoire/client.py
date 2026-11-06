@@ -6,7 +6,7 @@ import requests
 from pydantic import ValidationError
 from requests.exceptions import ConnectionError, HTTPError, RequestException, Timeout
 
-from schemas.weather import WeatherResponseModel
+from observatoire.schemas.weather import WeatherResponseModel
 
 logger = logging.getLogger(__name__)
 
