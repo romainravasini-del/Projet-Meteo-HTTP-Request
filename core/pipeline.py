@@ -3,8 +3,8 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from observatoire.client import OpenMeteoClient
-from observatoire.database import (
+from core.client import OpenMeteoClient
+from core.database import (
     DEFAULT_DB_PATH,
     get_connection,
     get_statistiques_globales,

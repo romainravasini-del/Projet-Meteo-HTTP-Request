@@ -1,47 +1,36 @@
 """Script principal pour tester la récupération, la validation Pydantic et la persistance SQLite."""
 
-import os
-from dotenv import load_dotenv
 from pydantic import ValidationError
 from requests.exceptions import RequestException
-from observatoire.client import OpenMeteoClient
-from observatoire.database import (
-    DEFAULT_DB_PATH,
+from core.client import OpenMeteoClient
+from core.database import (
     get_statistiques_ville,
     init_db,
     insert_releve,
     insert_ville,
 )
-from observatoire.pipeline import initialiser_villes_par_defaut
-
-# Chargement de la configuration
-load_dotenv()
-
+from core.pipeline import initialiser_villes_par_defaut
+from core.config import (LATITUDE, LONGITUDE, TIMEOUT, TIMEZONE, DB_PATH)   
 
 def main():
-    lat = float(os.getenv("DEFAULT_LATITUDE", 48.8566))
-    lon = float(os.getenv("DEFAULT_LONGITUDE", 2.3522))
-    timeout = int(os.getenv("OPEN_METEO_TIMEOUT", 10))
-    timezone = os.getenv("DEFAULT_TIMEZONE", "auto")
-    db_path = os.getenv("SQLITE_DB_PATH", DEFAULT_DB_PATH)
 
     print("🗄️ Initialisation de la base SQLite...")
-    conn = init_db(db_path)
+    conn = init_db(DB_PATH)
     initialiser_villes_par_defaut(conn)
 
     ville_nom = "Paris"
-    ville_id = insert_ville(conn, ville_nom, lat, lon)
+    ville_id = insert_ville(conn, ville_nom, LATITUDE, LONGITUDE)
 
-    print(f"📡 Récupération des données météo pour {ville_nom} (Lat: {lat}°, Lon: {lon}°)...")
+    print(f"📡 Récupération des données météo pour {ville_nom} (Lat: {LATITUDE}°, Lon: {LONGITUDE}°)...")
 
-    with OpenMeteoClient(timeout=timeout) as client:
+    with OpenMeteoClient(timeout=TIMEOUT) as client:
         try:
             # 1. Récupération & 2. Validation Pydantic
             weather_data = client.get_weather(
-                latitude=lat,
-                longitude=lon,
+                latitude=LATITUDE,
+                longitude=LONGITUDE,
                 current_weather=True,
-                timezone=timezone,
+                timezone=TIMEZONE,
             )
 
             current = weather_data.current_weather

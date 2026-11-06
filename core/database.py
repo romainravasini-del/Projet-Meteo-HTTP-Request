@@ -2,13 +2,11 @@
 
 import os
 from typing import Any, Dict, List, Optional
-
 from sqlalchemy import event, func
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Field, Relationship, Session, SQLModel, col, create_engine, select
-
-DEFAULT_DB_PATH = os.getenv("SQLITE_DB_PATH", "data/meteo.db")
+from core.config import DB_PATH as DEFAULT_DB_PATH
 
 
 @event.listens_for(Engine, "connect")
